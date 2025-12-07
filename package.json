@@ -1,0 +1,90 @@
+{
+  "name": "anogram",
+  "version": "1.0.0",
+  "description": "Anogram - Application de messagerie instantanée",
+  "main": "main.js",
+  "scripts": {
+    "server": "node server/server.js",
+    "electron": "electron .",
+    "start": "node server/server.js & electron .",
+    "dev": "concurrently \"npm run server\" \"npm run electron\"",
+    "build": "electron-builder build --win",
+    "dist": "electron-builder build --win --publish never",
+    "publish": "electron-builder build --win --publish always"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zeus75017/anogram-server.git"
+  },
+  "keywords": [
+    "anogram",
+    "messenger",
+    "chat",
+    "messaging"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.5",
+    "electron": "^39.2.6",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.5.0",
+    "crypto-js": "^4.2.0",
+    "electron-updater": "^6.6.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.3.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "sanitize-html": "^2.17.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "uuid": "^13.0.0"
+  },
+  "build": {
+    "appId": "com.anogram.app",
+    "productName": "Anogram",
+    "directories": {
+      "output": "dist"
+    },
+    "asar": true,
+    "files": [
+      "main.js",
+      "public/**/*",
+      "src/**/*",
+      "node_modules/**/*",
+      "!node_modules/better-sqlite3/**/*",
+      "!server/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Anogram"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "zeus75017",
+      "repo": "anogram-server"
+    }
+  }
+}

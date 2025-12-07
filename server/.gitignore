@@ -1,0 +1,6 @@
+node_modules/
+*.db
+.keys.json
+uploads/
+.env
+*.log
