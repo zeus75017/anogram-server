@@ -20,7 +20,8 @@
       "Bash(git tag:*)",
       "Bash(gh release create:*)",
       "Bash(cmd /c \"cd /d \"\"C:\\Users\\zeus7\\Desktop\\Nouveau dossier\\telegram-clone\"\" && gh release create v1.0.1 \"\"dist/Anogram Setup 1.0.1.exe\"\" --title \"\"Anogram v1.0.1\"\" --notes \"\"## Nouveautes - Panel Admin ameliore avec pagination, filtres, tri et recherche - Bouton Voir les infos corrige - Zeus est automatiquement admin\"\"\")",
-      "Bash(cmd /c \"cd /d \"\"C:\\Users\\zeus7\\Desktop\\Nouveau dossier\\telegram-clone\"\" && where gh\")"
+      "Bash(cmd /c \"cd /d \"\"C:\\Users\\zeus7\\Desktop\\Nouveau dossier\\telegram-clone\"\" && where gh\")",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []
