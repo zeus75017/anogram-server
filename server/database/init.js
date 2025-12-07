@@ -156,9 +156,9 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_admin_logs_date ON admin_logs(created_at);
 `);
 
-// Définir Zeus comme admin (username = 'zeus')
+// Définir Zeus comme admin (username = 'zeus' ou 'Zeus')
 try {
-  db.exec(`UPDATE users SET is_admin = 1 WHERE username = 'zeus'`);
+  db.exec(`UPDATE users SET is_admin = 1 WHERE LOWER(username) = 'zeus'`);
 } catch (e) {}
 
 console.log('Base de données Anogram initialisée avec succès!');

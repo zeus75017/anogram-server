@@ -892,6 +892,12 @@ async function showGroupInfo() {
   const conv = conversations.find(c => c.id === currentConversationId);
   if (!conv) return;
 
+  // Pour les conversations privées, afficher le profil utilisateur
+  if (conv.type === 'private') {
+    showUserProfile();
+    return;
+  }
+
   const isChannel = conv.type === 'channel';
   const endpoint = isChannel ? `/api/channels/${currentConversationId}` : `/api/groups/${currentConversationId}`;
 
@@ -2737,57 +2743,290 @@ async function loadAdminStats() {
   }
 }
 
+// Variables pour la pagination admin
+let adminUsersData = [];
+let adminUsersPage = 1;
+let adminUsersPageSize = 25;
+let adminUsersFilter = 'all';
+let adminUsersSort = 'recent';
+let adminUsersSearch = '';
+let selectedUserIds = new Set();
+
 async function loadAdminUsers() {
   try {
     const response = await fetch(`${API_URL}/api/admin/users`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     });
     const data = await response.json();
-
-    const tbody = document.getElementById('adminUsersTableBody');
-    tbody.innerHTML = '';
-
-    data.users.forEach(user => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>
-          <div class="user-avatar">
-            ${user.avatar
-              ? `<img src="${API_URL}${user.avatar}" alt="" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'avatar-placeholder\\'><i class=\\'fas fa-user\\'></i></div>';">`
-              : `<div class="avatar-placeholder"><i class="fas fa-user"></i></div>`
-            }
-          </div>
-        </td>
-        <td>
-          ${user.displayName}
-          ${user.isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}
-        </td>
-        <td>@${user.username}</td>
-        <td>
-          <span class="status-badge ${user.status}">${user.status === 'online' ? 'En ligne' : 'Hors ligne'}</span>
-        </td>
-        <td>${user.messageCount}</td>
-        <td>${formatDate(user.createdAt)}</td>
-        <td>
-          <button class="admin-action-btn view" onclick="viewAdminUser('${user.id}')" title="Voir détails">
-            <i class="fas fa-eye"></i>
-          </button>
-          <button class="admin-action-btn ${user.isAdmin ? 'warning' : 'promote'}" onclick="toggleAdminUser('${user.id}', ${!user.isAdmin})" title="${user.isAdmin ? 'Retirer admin' : 'Promouvoir admin'}">
-            <i class="fas fa-${user.isAdmin ? 'user-minus' : 'user-shield'}"></i>
-          </button>
-          ${!user.isAdmin ? `
-            <button class="admin-action-btn delete" onclick="deleteAdminUser('${user.id}', '${user.displayName}')" title="Supprimer">
-              <i class="fas fa-trash"></i>
-            </button>
-          ` : ''}
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
+    adminUsersData = data.users || [];
+    renderAdminUsers();
   } catch (error) {
     console.error('Erreur chargement utilisateurs:', error);
   }
 }
+
+function filterAndSortUsers() {
+  let filtered = [...adminUsersData];
+
+  // Appliquer le filtre
+  switch (adminUsersFilter) {
+    case 'online':
+      filtered = filtered.filter(u => u.status === 'online');
+      break;
+    case 'offline':
+      filtered = filtered.filter(u => u.status !== 'online');
+      break;
+    case 'admin':
+      filtered = filtered.filter(u => u.isAdmin);
+      break;
+    case 'recent':
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      filtered = filtered.filter(u => new Date(u.createdAt).getTime() > weekAgo);
+      break;
+  }
+
+  // Appliquer la recherche
+  if (adminUsersSearch) {
+    const search = adminUsersSearch.toLowerCase();
+    filtered = filtered.filter(u =>
+      u.displayName.toLowerCase().includes(search) ||
+      u.username.toLowerCase().includes(search) ||
+      (u.phone && u.phone.includes(search))
+    );
+  }
+
+  // Appliquer le tri
+  switch (adminUsersSort) {
+    case 'name':
+      filtered.sort((a, b) => a.displayName.localeCompare(b.displayName));
+      break;
+    case 'messages':
+      filtered.sort((a, b) => (b.messageCount || 0) - (a.messageCount || 0));
+      break;
+    case 'active':
+      filtered.sort((a, b) => {
+        if (a.status === 'online' && b.status !== 'online') return -1;
+        if (b.status === 'online' && a.status !== 'online') return 1;
+        return new Date(b.lastSeen || 0) - new Date(a.lastSeen || 0);
+      });
+      break;
+    case 'recent':
+    default:
+      filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      break;
+  }
+
+  return filtered;
+}
+
+function renderAdminUsers() {
+  const filtered = filterAndSortUsers();
+  const totalPages = Math.ceil(filtered.length / adminUsersPageSize) || 1;
+
+  // S'assurer que la page est valide
+  if (adminUsersPage > totalPages) adminUsersPage = totalPages;
+  if (adminUsersPage < 1) adminUsersPage = 1;
+
+  // Calculer les indices de la page
+  const startIdx = (adminUsersPage - 1) * adminUsersPageSize;
+  const endIdx = startIdx + adminUsersPageSize;
+  const pageUsers = filtered.slice(startIdx, endIdx);
+
+  // Mettre à jour le compteur
+  document.getElementById('adminUserCount').textContent = `${filtered.length} utilisateur${filtered.length > 1 ? 's' : ''}`;
+
+  // Mettre à jour la pagination
+  document.getElementById('usersPageInfo').textContent = `Page ${adminUsersPage}/${totalPages}`;
+  document.getElementById('usersPrevPage').disabled = adminUsersPage <= 1;
+  document.getElementById('usersNextPage').disabled = adminUsersPage >= totalPages;
+
+  // Mettre à jour le sélecteur "tout sélectionner"
+  const selectAllCheckbox = document.getElementById('selectAllUsersCheckbox');
+  if (selectAllCheckbox) {
+    const allOnPageSelected = pageUsers.every(u => selectedUserIds.has(u.id));
+    selectAllCheckbox.checked = pageUsers.length > 0 && allOnPageSelected;
+  }
+
+  // Rendre le tableau
+  const tbody = document.getElementById('adminUsersTableBody');
+  tbody.innerHTML = '';
+
+  pageUsers.forEach(user => {
+    const tr = document.createElement('tr');
+    tr.dataset.userId = user.id;
+    if (selectedUserIds.has(user.id)) {
+      tr.classList.add('selected');
+    }
+    tr.innerHTML = `
+      <td class="checkbox-col">
+        <input type="checkbox" class="user-checkbox" data-user-id="${user.id}" ${selectedUserIds.has(user.id) ? 'checked' : ''}>
+      </td>
+      <td>
+        <div class="user-avatar">
+          ${user.avatar
+            ? `<img src="${API_URL}${user.avatar}" alt="" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'avatar-placeholder\\'><i class=\\'fas fa-user\\'></i></div>';">`
+            : `<div class="avatar-placeholder"><i class="fas fa-user"></i></div>`
+          }
+        </div>
+      </td>
+      <td>
+        ${user.displayName}
+        ${user.isAdmin ? '<span class="admin-badge">ADMIN</span>' : ''}
+      </td>
+      <td>@${user.username}</td>
+      <td>
+        <span class="status-badge ${user.status}">${user.status === 'online' ? 'En ligne' : 'Hors ligne'}</span>
+      </td>
+      <td>${user.messageCount || 0}</td>
+      <td>${formatDate(user.createdAt)}</td>
+      <td>
+        <button class="admin-action-btn view" onclick="viewAdminUser('${user.id}')" title="Voir détails">
+          <i class="fas fa-eye"></i>
+        </button>
+        <button class="admin-action-btn ${user.isAdmin ? 'warning' : 'promote'}" onclick="toggleAdminUser('${user.id}', ${!user.isAdmin})" title="${user.isAdmin ? 'Retirer admin' : 'Promouvoir admin'}">
+          <i class="fas fa-${user.isAdmin ? 'user-minus' : 'user-shield'}"></i>
+        </button>
+        ${!user.isAdmin ? `
+          <button class="admin-action-btn delete" onclick="deleteAdminUser('${user.id}', '${user.displayName.replace(/'/g, "\\'")}')" title="Supprimer">
+            <i class="fas fa-trash"></i>
+          </button>
+        ` : ''}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Mettre à jour le bouton de suppression en masse
+  updateBulkDeleteButton();
+}
+
+function updateBulkDeleteButton() {
+  const bulkDeleteBtn = document.getElementById('bulkDeleteUsers');
+  const selectedSpan = document.getElementById('adminUserSelected');
+
+  if (selectedUserIds.size > 0) {
+    bulkDeleteBtn.disabled = false;
+    selectedSpan.classList.remove('hidden');
+    selectedSpan.textContent = `${selectedUserIds.size} sélectionné${selectedUserIds.size > 1 ? 's' : ''}`;
+  } else {
+    bulkDeleteBtn.disabled = true;
+    selectedSpan.classList.add('hidden');
+  }
+}
+
+// Event listeners pour la pagination et filtres admin
+document.getElementById('adminUserSearch')?.addEventListener('input', (e) => {
+  adminUsersSearch = e.target.value;
+  adminUsersPage = 1;
+  renderAdminUsers();
+});
+
+document.getElementById('adminUserFilter')?.addEventListener('change', (e) => {
+  adminUsersFilter = e.target.value;
+  adminUsersPage = 1;
+  renderAdminUsers();
+});
+
+document.getElementById('adminUserSort')?.addEventListener('change', (e) => {
+  adminUsersSort = e.target.value;
+  renderAdminUsers();
+});
+
+document.getElementById('usersPageSize')?.addEventListener('change', (e) => {
+  adminUsersPageSize = parseInt(e.target.value);
+  adminUsersPage = 1;
+  renderAdminUsers();
+});
+
+document.getElementById('usersPrevPage')?.addEventListener('click', () => {
+  if (adminUsersPage > 1) {
+    adminUsersPage--;
+    renderAdminUsers();
+  }
+});
+
+document.getElementById('usersNextPage')?.addEventListener('click', () => {
+  const totalPages = Math.ceil(filterAndSortUsers().length / adminUsersPageSize);
+  if (adminUsersPage < totalPages) {
+    adminUsersPage++;
+    renderAdminUsers();
+  }
+});
+
+document.getElementById('selectAllUsersCheckbox')?.addEventListener('change', (e) => {
+  const filtered = filterAndSortUsers();
+  const startIdx = (adminUsersPage - 1) * adminUsersPageSize;
+  const endIdx = startIdx + adminUsersPageSize;
+  const pageUsers = filtered.slice(startIdx, endIdx);
+
+  pageUsers.forEach(user => {
+    if (!user.isAdmin) { // Ne pas sélectionner les admins
+      if (e.target.checked) {
+        selectedUserIds.add(user.id);
+      } else {
+        selectedUserIds.delete(user.id);
+      }
+    }
+  });
+
+  renderAdminUsers();
+});
+
+document.getElementById('selectAllUsers')?.addEventListener('click', () => {
+  const checkbox = document.getElementById('selectAllUsersCheckbox');
+  checkbox.checked = !checkbox.checked;
+  checkbox.dispatchEvent(new Event('change'));
+});
+
+document.getElementById('adminUsersTableBody')?.addEventListener('change', (e) => {
+  if (e.target.classList.contains('user-checkbox')) {
+    const userId = e.target.dataset.userId;
+    if (e.target.checked) {
+      selectedUserIds.add(userId);
+    } else {
+      selectedUserIds.delete(userId);
+    }
+    e.target.closest('tr').classList.toggle('selected', e.target.checked);
+    updateBulkDeleteButton();
+  }
+});
+
+document.getElementById('bulkDeleteUsers')?.addEventListener('click', async () => {
+  if (selectedUserIds.size === 0) return;
+
+  const confirmed = await showCustomConfirm(
+    `Voulez-vous vraiment supprimer ${selectedUserIds.size} utilisateur${selectedUserIds.size > 1 ? 's' : ''} ? Cette action est irréversible.`,
+    'Suppression en masse',
+    'danger'
+  );
+
+  if (!confirmed) return;
+
+  let deleted = 0;
+  for (const userId of selectedUserIds) {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) deleted++;
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+    }
+  }
+
+  selectedUserIds.clear();
+  loadAdminUsers();
+  loadAdminStats();
+
+  showCustomConfirm(
+    `${deleted} utilisateur${deleted > 1 ? 's ont été supprimés' : ' a été supprimé'}.`,
+    'Suppression terminée',
+    'info',
+    'OK',
+    null
+  ).catch(() => {});
+});
 
 async function loadAdminConversations() {
   try {

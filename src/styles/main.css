@@ -3254,6 +3254,175 @@ textarea.full-input {
   font-size: 14px;
 }
 
+/* Admin Toolbar */
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+  padding: 15px;
+  background-color: var(--bg-tertiary);
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.admin-toolbar .admin-search-bar {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 0;
+}
+
+.admin-filters {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-select {
+  padding: 10px 15px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-select:hover {
+  border-color: var(--accent-color);
+}
+
+.admin-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(82, 136, 193, 0.2);
+}
+
+.admin-bulk-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-bulk-btn {
+  padding: 10px 15px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-bulk-btn:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.admin-bulk-btn.danger:hover:not(:disabled) {
+  border-color: var(--error-color);
+  color: var(--error-color);
+  background-color: rgba(231, 76, 60, 0.1);
+}
+
+.admin-bulk-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Admin Stats Bar */
+.admin-stats-bar {
+  display: flex;
+  gap: 15px;
+  padding: 10px 15px;
+  background-color: var(--bg-tertiary);
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.admin-stats-bar span.hidden {
+  display: none;
+}
+
+/* Admin Table Checkbox */
+.admin-table .checkbox-col {
+  width: 40px;
+  text-align: center;
+}
+
+.admin-table input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--accent-color);
+}
+
+.admin-table tr.selected {
+  background-color: rgba(82, 136, 193, 0.15);
+}
+
+/* Admin Pagination */
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 15px;
+  background-color: var(--bg-tertiary);
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+.page-btn {
+  width: 36px;
+  height: 36px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 14px;
+  color: var(--text-secondary);
+  min-width: 100px;
+  text-align: center;
+}
+
+.page-size {
+  padding: 8px 12px;
+  min-width: auto;
+}
+
+/* User Row with checkbox */
+.admin-table tbody tr {
+  transition: background-color 0.2s;
+}
+
+.admin-table tbody tr:hover {
+  background-color: var(--bg-hover);
+}
+
 /* ==================== UPDATE BANNER ==================== */
 .update-banner {
   position: fixed;

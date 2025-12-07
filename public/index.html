@@ -819,25 +819,60 @@
 
           <!-- Users Tab -->
           <div class="admin-tab-content" id="adminUsers">
-            <div class="admin-search-bar">
-              <i class="fas fa-search"></i>
-              <input type="text" id="adminUserSearch" placeholder="Rechercher un utilisateur...">
+            <div class="admin-toolbar">
+              <div class="admin-search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="adminUserSearch" placeholder="Rechercher un utilisateur...">
+              </div>
+              <div class="admin-filters">
+                <select id="adminUserFilter" class="admin-select">
+                  <option value="all">Tous les utilisateurs</option>
+                  <option value="online">En ligne</option>
+                  <option value="offline">Hors ligne</option>
+                  <option value="admin">Administrateurs</option>
+                  <option value="recent">Récents (7j)</option>
+                </select>
+                <select id="adminUserSort" class="admin-select">
+                  <option value="recent">Plus récents</option>
+                  <option value="name">Par nom</option>
+                  <option value="messages">Par messages</option>
+                  <option value="active">Plus actifs</option>
+                </select>
+              </div>
+              <div class="admin-bulk-actions">
+                <button class="admin-bulk-btn" id="selectAllUsers"><i class="fas fa-check-square"></i></button>
+                <button class="admin-bulk-btn danger" id="bulkDeleteUsers" disabled><i class="fas fa-trash"></i> Supprimer</button>
+              </div>
+            </div>
+            <div class="admin-stats-bar">
+              <span id="adminUserCount">0 utilisateurs</span>
+              <span id="adminUserSelected" class="hidden">0 sélectionnés</span>
             </div>
             <div class="admin-table-container">
               <table class="admin-table">
                 <thead>
                   <tr>
-                    <th>Avatar</th>
-                    <th>Nom</th>
+                    <th class="checkbox-col"><input type="checkbox" id="selectAllUsersCheckbox"></th>
+                    <th>Utilisateur</th>
                     <th>Username</th>
                     <th>Status</th>
                     <th>Messages</th>
-                    <th>Inscrit le</th>
+                    <th>Dernière activité</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="adminUsersTableBody"></tbody>
               </table>
+            </div>
+            <div class="admin-pagination" id="usersPagination">
+              <button class="page-btn" id="usersPrevPage"><i class="fas fa-chevron-left"></i></button>
+              <span class="page-info" id="usersPageInfo">Page 1/1</span>
+              <button class="page-btn" id="usersNextPage"><i class="fas fa-chevron-right"></i></button>
+              <select class="admin-select page-size" id="usersPageSize">
+                <option value="25">25 / page</option>
+                <option value="50">50 / page</option>
+                <option value="100">100 / page</option>
+              </select>
             </div>
           </div>
 

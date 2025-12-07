@@ -1,6 +1,6 @@
 {
   "name": "anogram",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Anogram - Application de messagerie instantanée",
   "main": "main.js",
   "scripts": {
