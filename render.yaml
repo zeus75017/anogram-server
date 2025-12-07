@@ -1,18 +1,6 @@
 services:
   - type: web
     name: anogram-server
-    runtime: node
-    region: frankfurt
-    plan: free
-    rootDir: server
-    buildCommand: npm install
-    startCommand: npm start
-    healthCheckPath: /health
-    envVars:
-      - key: NODE_ENV
-        value: production
-    disk:
-      name: anogram-data
-      mountPath: /data
-      sizeGB: 1
-    autoDeploy: true
+    env: node
+    buildCommand: npm install && npm rebuild better-sqlite3
+    startCommand: node server/server.js
