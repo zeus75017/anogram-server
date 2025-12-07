@@ -14,7 +14,10 @@
       "Bash(git remote add:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(if exist .git rmdir /s /q .git)",
+      "Bash(gh repo create:*)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []

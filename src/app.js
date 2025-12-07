@@ -367,22 +367,31 @@ function renderConversations() {
     chatItem.className = `chat-item ${conv.id === currentConversationId ? 'active' : ''}`;
     chatItem.dataset.id = conv.id;
 
-    const lastMessageText = conv.lastMessage ? conv.lastMessage.content : 'Aucun message';
+    let lastMessageText = conv.lastMessage ? conv.lastMessage.content : 'Aucun message';
+    // Nettoyer le texte pour l'aperçu (enlever les balises de media)
+    if (lastMessageText.includes('[Image:')) lastMessageText = '📷 Photo';
+    else if (lastMessageText.includes('[Vidéo:') || lastMessageText.includes('[Video:')) lastMessageText = '🎬 Vidéo';
+    else if (lastMessageText.includes('[Audio:')) lastMessageText = '🎵 Audio';
+    else if (lastMessageText.includes('[Fichier:')) lastMessageText = '📎 Fichier';
+    else if (lastMessageText.length > 40) lastMessageText = lastMessageText.substring(0, 40) + '...';
+
     const lastMessageTime = conv.lastMessage ? formatTime(conv.lastMessage.createdAt) : '';
     const isGroup = conv.type === 'group';
     const isChannel = conv.type === 'channel';
     const iconClass = isChannel ? 'bullhorn' : (isGroup ? 'users' : 'user');
+    const isOnline = !isGroup && !isChannel && conv.status === 'online';
 
     chatItem.innerHTML = `
       <div class="user-avatar">
         ${conv.avatar
-          ? `<img src="${conv.avatar.startsWith('http') ? conv.avatar : API_URL + conv.avatar}" alt="" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'avatar-placeholder\\'><i class=\\'fas fa-${iconClass}\\'></i></div>';">`
+          ? `<img src="${conv.avatar.startsWith('http') ? conv.avatar : API_URL + conv.avatar}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+             <div class="avatar-placeholder" style="display:none;"><i class="fas fa-${iconClass}"></i></div>`
           : `<div class="avatar-placeholder"><i class="fas fa-${iconClass}"></i></div>`}
+        ${isOnline ? '<span class="online-indicator"></span>' : ''}
       </div>
-      ${!isGroup && !isChannel && conv.status === 'online' ? '<div class="online-indicator"></div>' : ''}
       <div class="chat-info">
         <div class="chat-top-row">
-          <span class="chat-name">${isChannel ? '📢 ' : ''}${conv.name || 'Discussion'}</span>
+          <span class="chat-name">${isChannel ? '<i class="fas fa-bullhorn chat-type-icon"></i>' : (isGroup ? '<i class="fas fa-users chat-type-icon"></i>' : '')}${conv.name || 'Discussion'}</span>
           <span class="chat-time">${lastMessageTime}</span>
         </div>
         <div class="chat-bottom-row">
