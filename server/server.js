@@ -45,6 +45,16 @@ const {
 // Initialiser la base de données
 const db = require('./database/init');
 
+// S'assurer que Zeus est admin à chaque démarrage
+try {
+  const result = db.prepare(`UPDATE users SET is_admin = 1 WHERE LOWER(username) = 'zeus'`).run();
+  if (result.changes > 0) {
+    console.log('Zeus défini comme admin');
+  }
+} catch (e) {
+  console.log('Pas d\'utilisateur Zeus trouvé ou erreur:', e.message);
+}
+
 const app = express();
 
 // Trust proxy pour Render.com (nécessaire pour le rate limiting)
