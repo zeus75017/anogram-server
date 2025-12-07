@@ -45,14 +45,19 @@ const {
 // Initialiser la base de données
 const db = require('./database/init');
 
-// S'assurer que Zeus est admin à chaque démarrage
+// Liste des usernames qui doivent être admin (insensible à la casse)
+const ADMIN_USERNAMES = ['zeus', 'admin'];
+
+// S'assurer que les admins sont définis à chaque démarrage
 try {
-  const result = db.prepare(`UPDATE users SET is_admin = 1 WHERE LOWER(username) = 'zeus'`).run();
-  if (result.changes > 0) {
-    console.log('Zeus défini comme admin');
-  }
+  ADMIN_USERNAMES.forEach(username => {
+    const result = db.prepare(`UPDATE users SET is_admin = 1 WHERE LOWER(username) = ?`).run(username.toLowerCase());
+    if (result.changes > 0) {
+      console.log(`${username} défini comme admin`);
+    }
+  });
 } catch (e) {
-  console.log('Pas d\'utilisateur Zeus trouvé ou erreur:', e.message);
+  console.log('Erreur définition admins:', e.message);
 }
 
 const app = express();

@@ -2,8 +2,28 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-// Utiliser le dossier actuel pour la base de données
-const dbPath = path.join(__dirname, 'anogram.db');
+// En production sur Render, utiliser /var/data pour la persistance
+// Sinon utiliser le dossier actuel
+let dbPath;
+if (process.env.RENDER && process.env.DATA_DIR) {
+  // Render avec Disk persistant
+  dbPath = path.join(process.env.DATA_DIR, 'anogram.db');
+} else if (process.env.RENDER) {
+  // Render sans Disk (fallback - données perdues au redémarrage)
+  dbPath = '/var/data/anogram.db';
+  // Créer le dossier s'il n'existe pas
+  try {
+    if (!fs.existsSync('/var/data')) {
+      fs.mkdirSync('/var/data', { recursive: true });
+    }
+  } catch (e) {
+    // Si on ne peut pas créer /var/data, utiliser le dossier local
+    dbPath = path.join(__dirname, 'anogram.db');
+  }
+} else {
+  // Développement local
+  dbPath = path.join(__dirname, 'anogram.db');
+}
 console.log('Base de données:', dbPath);
 
 const db = new Database(dbPath);
