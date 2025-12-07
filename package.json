@@ -24,6 +24,9 @@
   ],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": "20.x"
+  },
   "devDependencies": {
     "concurrently": "^9.2.1",
     "cors": "^2.8.5",
